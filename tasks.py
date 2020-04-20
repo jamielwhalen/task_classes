@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import *
 import sqlite3
@@ -95,7 +96,8 @@ class Controller():
                     return
 
         alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o','p','q','r','s','t', 'u', 'v', 'w','x','y','z',
-                 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '_']
+                 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '_', '1', '2', '3',
+                 '4', '5' ,'6', '7', '7', '9', '0']
         new_phrase = ""
 
         error = "no"
@@ -114,17 +116,25 @@ class Controller():
             y = new_phrase
             warning.bell()
             if tkinter.messagebox.askokcancel("Error", 'Job name can only contain alphabetic characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.', icon='warning'):
+                for table in tables:
+                    for i in table:
+                        if y == str(i):
+                            warning.bell()
+                            tkinter.messagebox.showerror("Error",
+                                                         "Cannot create duplicate Job names. Please re-enter Job name.",
+                                                         icon='warning')
+                            return
 
-                ct_str = ('CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
-                ct_str = str(ct_str)
-                c.execute(ct_str)
-                page_name.withdraw()
-                global page2
-                page2 = Tk()
-                page2.title(y)
-                Views.create_task_page(page2, 1)
-            else:
-                return
+                        else:
+                            ct_str = (
+                                        'CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
+                            ct_str = str(ct_str)
+                            c.execute(ct_str)
+                            page_name.withdraw()
+                            page2 = Tk()
+                            page2.title(y)
+                            Views.create_task_page(page2, 1)
+                            return
 
         elif error == "no":
             ct_str = ('CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
@@ -171,9 +181,13 @@ class Controller():
 
     def create_task(create_page):
 
+            warning = Tk()
+            warning.withdraw()
+
             list1 = []
             for lnk in entry_list:
                 list1.append(lnk.get())
+            print(list1)
 
             e = len(list1)
             t = len(options)
@@ -181,8 +195,19 @@ class Controller():
             for idx in range(0, t):
                 a = idx+1
                 b=list1[idx]
-                d=options[a]
+                d=options[idx+1]
                 e = "Active"
+                if d == "File" or d =="Application":
+                    if os.path.isdir(b):
+                        pass
+                    else:
+                        if tkinter.messagebox.askokcancel("Error",
+                                                          (b + " Is not an existing file path.  Click OK to proceed or Cancel to re-enter"),
+                                                   icon='warning'):
+                            pass
+                        else:
+                            return
+
 
                 add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a)+"','" + str(b)+"', '"+str(d) +"', '"+str(e)+"')")
                 c.execute(str(add1))
@@ -198,6 +223,16 @@ class Controller():
 
 
     def add_task_line(page_num, it_num):
+        warning = Tk()
+        warning.withdraw()
+
+        if it_num >= 15:
+            tkinter.messagebox.askokcancel("Error",
+                                            'Reached max number(15) of tasks.',
+                                              icon='warning')
+            return
+
+
         it_num += 1
         Views.create_task_page(page_num, it_num)
 
@@ -213,7 +248,7 @@ class Controller():
     def edit_task(i, page_name):
         page_name.withdraw()
         a = Tk()
-        title = ("Edit " + i + " Job Tasks")
+        title = ("Edit " + i)
         a.title(title)
         Views.edit_task_page(a, i, 0)
 
@@ -295,6 +330,26 @@ class Controller():
         new_page = Tk()
         new_page.title("Job Manager")
         Views.home_page(new_page)
+
+    def delete_job(task, root4):
+
+        warning = Tk()
+        warning.withdraw()
+
+        warning.bell()
+        if tkinter.messagebox.askokcancel("Warning",
+                                          'Are you sure you want to delete ' + task + '?',
+                                          icon='warning'):
+            dropTableStatement = ("DROP TABLE " + task)
+
+            c.execute(dropTableStatement)
+            conn.commit()
+            root4.withdraw()
+            new_page = Tk()
+            new_page.title("Job Manager")
+            Views.home_page(new_page)
+            print("yes")
+
 
     def delete_task(var1, line):
         print(var1.get())
@@ -383,31 +438,28 @@ class Views():
 
     def create_task_page(root2, num):
 
-        link_name = ('link'+ str(num))
+        link_name = ('link' + str(num))
 
         Label(root2, text="Choose task type:", font='Helvetica 13 bold').grid(row=0, column=0)
-        Label(root2, text="Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=0, column=2)
+        Label(root2, text="Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=0,
+                                                                                                            column=2)
 
-        if num >= 1 and num <5:
-            for num in range(1,5):
+        if num >= 1 and num < 5:
+            for num in range(1, 5):
                 choice = StringVar(root2)
                 choices = {'Application', 'File', 'Website'}
                 choice.set('Choose Type')
 
-
-                popUpMenu = OptionMenu(root2, choice, *choices, command = lambda choice = choice, num = num: (Controller.get_selection(choice, num)))
+                popUpMenu = OptionMenu(root2, choice, *choices,
+                                       command=lambda choice=choice, num=num: (Controller.get_selection(choice, num)))
                 popUpMenu.grid(row=num, column=0)
 
-
-                link_name = Entry(root2, width=35, borderwidth = 5)
-                link_name.grid(row=num, column = 1, columnspan = 3, padx= 10, pady = 10)
+                link_name = Entry(root2, width=35, borderwidth=5)
+                link_name.grid(row=num, column=1, columnspan=3, padx=10, pady=10)
 
                 entry_list.append(link_name)
 
                 num = num + 1
-
-
-
 
         if num >= 5:
 
@@ -421,7 +473,8 @@ class Views():
             choices = ['Application', 'File', 'Website']
             choice2.set('Choose Type')
 
-            popUpMenu = OptionMenu(root2, choice2, *choices, command = lambda choice2 = choice2, num = num: (Controller.get_selection(choice2, num)))
+            popUpMenu = OptionMenu(root2, choice2, *choices,
+                                   command=lambda choice2=choice2, num=num: (Controller.get_selection(choice2, num)))
             popUpMenu.grid(row=num, column=0)
 
             link_name = Entry(root2, width=35, borderwidth=5)
@@ -429,10 +482,10 @@ class Views():
 
             entry_list.append(link_name)
 
-        button2 = Button(root2, text="Add Tasks to Job", command=lambda: Controller.create_task(root2), fg = "blue")
+        button2 = Button(root2, text="Add Tasks to Job", command=lambda: Controller.create_task(root2), fg="blue")
         button2.grid(row=num + 1, column=2)
 
-        addTask = Button(root2, text="Add Task Line", command=lambda: Controller.add_task_line(root2, num), fg = "blue")
+        addTask = Button(root2, text="Add Task Line", command=lambda: Controller.add_task_line(root2, num), fg="blue")
         addTask.grid(row=num + 1, column=0)
 
 
@@ -493,6 +546,9 @@ class Views():
 
         button2 = Button(root4, text="Update Job Tasks", command=lambda: Controller.update_task(task, root4), fg = "blue")
         button2.grid(row=num + 2, column=2, sticky=E)
+
+        delete_job = Button(root4, text="Delete Job", command=lambda: Controller.delete_job(task, root4), fg="blue")
+        delete_job.grid(row=num + 2, column=1)
 
         addTask = Button(root4, text="Add Task Line", command=lambda: Controller.add_task_line2(root4,task, num), fg = "blue")
         addTask.grid(row=num + 2, column=0)

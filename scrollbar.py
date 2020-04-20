@@ -1,93 +1,100 @@
-import tkinter as tk
-
-import sys
-
-global op_sys
-
-platforms = {
-    'linux1': 'Linux',
-    'linux2': 'Linux',
-    'darwin': 'OS X',
-    'win32': 'Windows'
-}
-if sys.platform in platforms:
-    op_sys = platforms[sys.platform]
-else:
-    op_sys = "Not present"
+#scrollbar for enter tasks
 
 
-class test():
-    def on_mousewheel(event):
-        if op_sys == 'OS X':
-            canvas.yview_scroll(-1*(event.delta), "units")
-        elif op_sys == 'Windows':
-            canvas.yview_scroll(-1 * (event.delta/120), "units")
-        else:
-            pass
+def on_mousewheel(event):
+    if op_sys == 'OS X':
+        canvas.yview_scroll(-1 * (event.delta), "units")
+    elif op_sys == 'Windows':
+        canvas.yview_scroll(-1 * (event.delta / 120), "units")
+    else:
+        pass
 
-root = tk.Tk()
-root.grid_rowconfigure(0, weight=1)
-root.columnconfigure(0, weight=1)
+root2.grid_rowconfigure(1, weight=1)
+root2.columnconfigure(1, weight=1)
 
-frame_main = tk.Frame(root, bg="gray")
-frame_main.grid(sticky='news')
+frame_main = tk.Frame(root2)
+frame_main.grid(sticky='news', row = 1, column = 0, ipady= 30)
 
-label1 = tk.Label(frame_main, text="Label 1", fg="green")
-label1.grid(row=0, column=0, pady=(5, 0), sticky='nw')
+link_name = ('link'+ str(num))
 
-label2 = tk.Label(frame_main, text="Label 2", fg="blue")
-label2.grid(row=1, column=0, pady=(5, 0), sticky='nw')
+Label(root2, text="Choose task type:        Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=0, column=0, sticky = 'w')
+# Label(root2, text="Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=0, column=1)
 
-label3 = tk.Label(frame_main, text="Label 3", fg="red")
-label3.grid(row=3, column=0, pady=5, sticky='nw')
-
-# Create a frame for the canvas with non-zero row&column weights
 frame_canvas = tk.Frame(frame_main)
-frame_canvas.grid(row=2, column=0, pady=(5, 0), sticky='nw')
+frame_canvas.grid(row=1, column=0, pady=(0, 0), sticky='nw', ipady= 30)
 frame_canvas.grid_rowconfigure(0, weight=1)
 frame_canvas.grid_columnconfigure(0, weight=1)
 # Set grid_propagate to False to allow 5-by-5 buttons resizing later
 # frame_canvas.grid_propagate(False)
 
 # Add a canvas in that frame
-canvas = tk.Canvas(frame_canvas, bg="yellow")
-canvas.grid(row=0, column=0, sticky="news")
-
-
+canvas = tk.Canvas(frame_canvas)  # , bg="yellow")
+canvas.grid(row=0, column=0, sticky='news')
 
 # Link a scrollbar to the canvas
 vsb = tk.Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
-vsb.grid(row=0, column=1, sticky='ns')
+vsb.grid(row=0, column=2, sticky='ns')
 canvas.configure(yscrollcommand=vsb.set)
 
-canvas.bind_all("<MouseWheel>", test.on_mousewheel)
+canvas.bind_all("<MouseWheel>", on_mousewheel)
 
+frame_buttons = tk.Frame(canvas)  # , bg="blue")
+canvas.create_window((0, 0), window=frame_buttons)
 
+if num >= 1 and num < 5:
+    for number in range(1, 5):
+        choice = StringVar(frame_buttons)
+        choices = {'Application', 'File', 'Website'}
+        choice.set('Choose Type')
 
-# Create a frame to contain the buttons
-frame_buttons = tk.Frame(canvas, bg="blue")
-canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
+        popUpMenu = OptionMenu(frame_buttons, choice, *choices,
+                               command=lambda choice=choice, num=num: (Controller.get_selection(choice, num)))
+        popUpMenu.grid(row=num, column=0)
 
-# Add 9-by-5 buttons to the frame
-rows = 9
-columns = 5
-buttons = [[tk.Button() for j in range(columns)] for i in range(rows)]
-for i in range(0, rows):
-    for j in range(0, columns):
-        buttons[i][j] = tk.Button(frame_buttons, text=("%d,%d" % (i+1, j+1)))
-        buttons[i][j].grid(row=i, column=j, sticky='news')
+        link_name = Entry(frame_buttons, width=35, borderwidth=5)
+        link_name.grid(row=num, column=1, columnspan=3, padx=10, pady=10)
 
-# Update buttons frames idle tasks to let tkinter calculate buttons sizes
+        entry_list.append(link_name)
+
+        num = num + 1
+
+if num >= 5:
+
+    if num > 5:
+        global addTask
+        addTask.destroy()
+        global button2
+        button2.destroy()
+
+    for number in range(num):
+
+        choice2 = StringVar(frame_buttons)
+        choices = ['Application', 'File', 'Website']
+        choice2.set('Choose Type')
+
+        popUpMenu = OptionMenu(frame_buttons, choice2, *choices,
+                               command=lambda choice2=choice2, num=num: (Controller.get_selection(choice2, num)))
+        popUpMenu.grid(row=number, column=0)
+
+        link_name = Entry(frame_buttons, width=35, borderwidth=5)
+        link_name.grid(row=number, column=1, columnspan=3, padx=10, pady=10)
+
+        entry_list.append(link_name)
+        print(number)
+
 frame_buttons.update_idletasks()
 
-# Resize the canvas frame to show exactly 5-by-5 buttons and the scrollbar
-first5columns_width = sum([buttons[0][j].winfo_width() for j in range(0, 5)])
-first5rows_height = sum([buttons[i][0].winfo_height() for i in range(0, 5)])
-frame_canvas.config(width=first5columns_width + vsb.winfo_width(),
-                    height=first5rows_height)
+canvas.config(width=frame_buttons.winfo_width())
 
-# Set the canvas scrolling region
 canvas.config(scrollregion=canvas.bbox("all"))
 
-# Launch the GUI
-root.mainloop()
+if num <= 5:
+    canvas.yview_moveto(0)
+else:
+    canvas.yview_moveto(num)
+
+button2 = Button(root2, text="Add Tasks to Job", command=lambda: Controller.create_task(root2), fg = "blue")
+button2.grid(row=num + 1, column=0, sticky = 'e')
+
+addTask = Button(root2, text="Add Task Line", command=lambda: Controller.add_task_line(root2, num), fg = "blue")
+addTask.grid(row=num + 1, column=0, sticky = 'w')
