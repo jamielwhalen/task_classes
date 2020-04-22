@@ -174,7 +174,7 @@ class Controller():
                 a = row[1]
                 print(a)
                 print("yes web")
-                webbrowser.open(a)
+                webbrowser.open(a, new=1, autoraise=True)
 
 
 
@@ -227,6 +227,7 @@ class Controller():
         warning.withdraw()
 
         if it_num >= 15:
+            warning.bell()
             tkinter.messagebox.askokcancel("Error",
                                             'Reached max number(15) of tasks.',
                                               icon='warning')
@@ -237,6 +238,15 @@ class Controller():
         Views.create_task_page(page_num, it_num)
 
     def add_task_line2(page_num, task, it_num):
+        warning = Tk()
+        warning.withdraw()
+        if it_num >= 15:
+            warning.bell()
+            tkinter.messagebox.askokcancel("Error",
+                                           'Reached max number(15) of tasks.',
+                                           icon='warning')
+            return
+
         it_num += 1
         Views.edit_task_page(page_num, task, it_num)
 
@@ -253,6 +263,9 @@ class Controller():
         Views.edit_task_page(a, i, 0)
 
     def update_task(task, update_page):
+
+        warning = Tk()
+        warning.withdraw()
 
         key_list = []
         for key in options.keys():
@@ -326,10 +339,105 @@ class Controller():
         delete_dict.clear()
         entry_text_dict.clear()
 
-        update_page.withdraw()
-        new_page = Tk()
-        new_page.title("Job Manager")
-        Views.home_page(new_page)
+        updated_job_name = entry2.get()
+        if updated_job_name == task:
+            update_page.withdraw()
+            new_page = Tk()
+            new_page.title("Job Manager")
+            Views.home_page(new_page)
+
+        else:
+
+
+            c.execute('SELECT name from sqlite_master where type= "table"')
+            tables = c.fetchall()
+
+            alpha = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                     'u', 'v', 'w', 'x', 'y', 'z',
+                     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                     'U', 'V', 'W', 'X', 'Y', 'Z', '_', '1', '2', '3',
+                     '4', '5', '6', '7', '7', '9', '0']
+            new_phrase = ""
+
+            error = "no"
+            print(updated_job_name)
+            for letter in updated_job_name:
+                if letter not in set(alpha):
+                    error = "yes"
+                    if letter == ' ':
+                        letter = "_"
+                    else:
+                        letter = ''
+                    new_phrase += letter
+                else:
+                    new_phrase += letter
+
+            if error == "yes":
+                updated_job_name = new_phrase
+                warning.bell()
+                if tkinter.messagebox.askokcancel("Error",
+                                                  'Job name can only contain alphabetic characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.',
+                                                  icon='warning'):
+                    if updated_job_name == task:
+                        update_page.withdraw()
+                        new_page = Tk()
+                        new_page.title("Job Manager")
+                        Views.home_page(new_page)
+
+                    else:
+                        same = "no"
+                        for table in tables:
+                            for i in table:
+                                print(i + "string i")
+                                print(updated_job_name + "updated job name")
+                                if updated_job_name == str(i):
+                                    same = "yes"
+                                    warning.bell()
+                                    tkinter.messagebox.showerror("Error",
+                                                                 "Cannot create duplicate Job names. Please re-enter Job name.",
+                                                                 icon='warning')
+                                    return
+
+
+                        if same == "no":
+                            update_function = ('ALTER TABLE ' + task + ' RENAME TO ' + updated_job_name)
+                            print(update_function)
+                            c.execute(update_function)
+                            conn.commit()
+
+                            update_page.withdraw()
+                            new_page = Tk()
+                            new_page.title("Job Manager")
+                            Views.home_page(new_page)
+                        else:
+                            return
+
+
+
+            else:
+                same = "no"
+                for table in tables:
+                    for i in table:
+                        if updated_job_name == str(i):
+                            same = "yes"
+                            warning.bell()
+                            tkinter.messagebox.showerror("Error",
+                                                         "Cannot create duplicate Job names. Please re-enter Job name.",
+                                                         icon='warning')
+                            return
+                if same =="no":
+                    update_function = ('ALTER TABLE ' + task + ' RENAME TO ' + updated_job_name)
+                    print(update_function)
+                    c.execute(update_function)
+                    conn.commit()
+
+                    update_page.withdraw()
+                    new_page = Tk()
+                    new_page.title("Job Manager")
+                    Views.home_page(new_page)
+                else:
+                    return
+
 
     def delete_job(task, root4):
 
@@ -491,14 +599,24 @@ class Views():
 
     def edit_task_page(root4, task, num):
 
+        Label(root4, text="Edit Job Name", font='Helvetica 13 bold').grid(row=0, column=0)
+
+        global entry2
+        entry2 = Entry(root4, width=35, borderwidth=1)
+        entry2.grid(row=0, column=1, padx=10, pady=10)
+        entry2.insert(0, task)
+
+        delete_job = Button(root4, text="Delete Job", command=lambda: Controller.delete_job(task, root4), fg="blue")
+        delete_job.grid(row=0, column=2)
+
         string = ('SELECT * from ' + str(task) + ' ORDER BY 1')
 
         c.execute(string)
         tasks = c.fetchall()
 
-        Label(root4, text="Task Type", font='Helvetica 13 bold').grid(row=0, column=0)
-        Label(root4, text="Task Link", font='Helvetica 13 bold').grid(row=0, column=1)
-        Label(root4, text="Delete Task", font='Helvetica 13 bold').grid(row=0, column=2)
+        Label(root4, text="Task Type", font='Helvetica 13 bold').grid(row=1, column=0)
+        Label(root4, text="Task Link", font='Helvetica 13 bold').grid(row=1, column=1)
+        Label(root4, text="Delete Task", font='Helvetica 13 bold').grid(row=1, column=2)
 
         if num <= len(tasks):
             for edit_task in tasks:
@@ -544,11 +662,8 @@ class Views():
 
             entry_dict[num] = e
 
-        button2 = Button(root4, text="Update Job Tasks", command=lambda: Controller.update_task(task, root4), fg = "blue")
+        button2 = Button(root4, text="Update Job", command=lambda: Controller.update_task(task, root4), fg = "blue")
         button2.grid(row=num + 2, column=2, sticky=E)
-
-        delete_job = Button(root4, text="Delete Job", command=lambda: Controller.delete_job(task, root4), fg="blue")
-        delete_job.grid(row=num + 2, column=1)
 
         addTask = Button(root4, text="Add Task Line", command=lambda: Controller.add_task_line2(root4,task, num), fg = "blue")
         addTask.grid(row=num + 2, column=0)
