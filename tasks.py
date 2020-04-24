@@ -73,6 +73,7 @@ class Controller():
         root.withdraw()
         page3 = Tk()
         page3.title("Edit Jobs")
+        page3.geometry('+%d+%d' % (100, 100))
         Views.create_edit_page(page3)
 
 
@@ -82,6 +83,23 @@ class Controller():
 
         global y
         y = entry1.get()
+
+        alpha2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+                 'u', 'v', 'w', 'x', 'y', 'z',
+                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                 'U', 'V', 'W', 'X', 'Y', 'Z']
+
+        if y[0] not in alpha2:
+
+            warning.bell()
+            tkinter.messagebox.showerror("Error", "Job name must begin with alphabetic characters. Please re-enter job name.",
+                                             icon='warning')
+            return
+
+
+        # if y[0] in numbers:
+        #     tkinter.messagebox.showerror("Error", 'Job name cannot begin with numbers.', icon='warning')
+        #     return
 
         c.execute('SELECT name from sqlite_master where type= "table"')
         tables = c.fetchall()
@@ -115,26 +133,32 @@ class Controller():
         if error == "yes":
             y = new_phrase
             warning.bell()
-            if tkinter.messagebox.askokcancel("Error", 'Job name can only contain alphabetic characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.', icon='warning'):
+            if tkinter.messagebox.askokcancel("Error", 'Job name can only contain alpha-numeric characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.', icon='warning'):
+                same = "no"
                 for table in tables:
                     for i in table:
+                        print("this is i" + i)
+                        print("this is y" + y)
                         if y == str(i):
+                            same = "yes"
                             warning.bell()
                             tkinter.messagebox.showerror("Error",
                                                          "Cannot create duplicate Job names. Please re-enter Job name.",
                                                          icon='warning')
                             return
 
-                        else:
-                            ct_str = (
-                                        'CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
-                            ct_str = str(ct_str)
-                            c.execute(ct_str)
-                            page_name.withdraw()
-                            page2 = Tk()
-                            page2.title(y)
-                            Views.create_task_page(page2, 1)
-                            return
+                if same == "no":
+
+                    ct_str = (
+                            'CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
+                    ct_str = str(ct_str)
+                    c.execute(ct_str)
+                    page_name.withdraw()
+                    page2 = Tk()
+                    page2.title(y)
+                    page2.geometry('+%d+%d' % (100, 100))
+                    Views.create_task_page(page2, 1)
+                    return
 
         elif error == "no":
             ct_str = ('CREATE TABLE IF NOT EXISTS ' + y + '(num Integer, link Text, type Text, active Text)')
@@ -143,6 +167,7 @@ class Controller():
             page_name.withdraw()
             page2 = Tk()
             page2.title(y)
+            page2.geometry('+%d+%d' % (100, 100))
             Views.create_task_page(page2, 1)
 
 
@@ -198,9 +223,10 @@ class Controller():
                 d=options[idx+1]
                 e = "Active"
                 if d == "File" or d =="Application":
-                    if os.path.isdir(b):
+                    if os.path.exists(b):
                         pass
                     else:
+                        warning.bell()
                         if tkinter.messagebox.askokcancel("Error",
                                                           (b + " Is not an existing file path.  Click OK to proceed or Cancel to re-enter"),
                                                    icon='warning'):
@@ -219,6 +245,7 @@ class Controller():
             create_page.withdraw()
             new_page = Tk()
             new_page.title("Job Manager")
+            new_page.geometry('+%d+%d' % (100, 100))
             Views.home_page(new_page)
 
 
@@ -260,6 +287,7 @@ class Controller():
         a = Tk()
         title = ("Edit " + i)
         a.title(title)
+        a.geometry('+%d+%d' % (100, 100))
         Views.edit_task_page(a, i, 0)
 
     def update_task(task, update_page):
@@ -286,6 +314,18 @@ class Controller():
                     b = entry_dict[entry].get()
                     d = options[entry]
                     e = "Active"
+
+                    if d == "File" or d == "Application":
+                        if os.path.exists(b):
+                            pass
+                        else:
+                            if tkinter.messagebox.askokcancel("Error",
+                                                              (
+                                                                      b + " Is not an existing file path.  Click OK to proceed or Cancel to re-enter"),
+                                                              icon='warning'):
+                                pass
+                            else:
+                                return
 
                     add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a) + "','" + str(b) + "', '" + str(d) + "', '" + str(e) + "')")
                     c.execute(str(add1))
@@ -344,9 +384,24 @@ class Controller():
             update_page.withdraw()
             new_page = Tk()
             new_page.title("Job Manager")
+            new_page.geometry('+%d+%d' % (100, 100))
             Views.home_page(new_page)
 
         else:
+
+            alpha2 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+                      't',
+                      'u', 'v', 'w', 'x', 'y', 'z',
+                      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+                      'T',
+                      'U', 'V', 'W', 'X', 'Y', 'Z']
+
+            if updated_job_name[0] not in alpha2:
+                warning.bell()
+                tkinter.messagebox.showerror("Error",
+                                             "Job name must begin with alphabetic characters. Please re-enter job name.",
+                                             icon='warning')
+                return
 
 
             c.execute('SELECT name from sqlite_master where type= "table"')
@@ -376,12 +431,13 @@ class Controller():
                 updated_job_name = new_phrase
                 warning.bell()
                 if tkinter.messagebox.askokcancel("Error",
-                                                  'Job name can only contain alphabetic characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.',
+                                                  'Job name can only contain alpha-numeric characters. Invalid characters have been removed. OK to continue or Cancel to re-enter.',
                                                   icon='warning'):
                     if updated_job_name == task:
                         update_page.withdraw()
                         new_page = Tk()
                         new_page.title("Job Manager")
+                        new_page.geometry('+%d+%d' % (100, 100))
                         Views.home_page(new_page)
 
                     else:
@@ -408,6 +464,7 @@ class Controller():
                             update_page.withdraw()
                             new_page = Tk()
                             new_page.title("Job Manager")
+                            new_page.geometry('+%d+%d' % (100, 100))
                             Views.home_page(new_page)
                         else:
                             return
@@ -434,6 +491,7 @@ class Controller():
                     update_page.withdraw()
                     new_page = Tk()
                     new_page.title("Job Manager")
+                    new_page.geometry('+%d+%d' % (100, 100))
                     Views.home_page(new_page)
                 else:
                     return
@@ -455,6 +513,7 @@ class Controller():
             root4.withdraw()
             new_page = Tk()
             new_page.title("Job Manager")
+            new_page.geometry('+%d+%d' % (100, 100))
             Views.home_page(new_page)
             print("yes")
 
@@ -474,75 +533,104 @@ class Views():
 
     def home_page(root):
 
-        def on_mousewheel(event):
-            if op_sys == 'OS X':
-                canvas.yview_scroll(-1 * (event.delta), "units")
-            elif op_sys == 'Windows':
-                canvas.yview_scroll(-1 * (event.delta / 120), "units")
-            else:
-                pass
-
-        root.grid_rowconfigure(0, weight=1)
-        root.columnconfigure(0, weight=1)
-
-        frame_main = tk.Frame(root)
-        frame_main.grid(sticky='news')
-
-
-        global entry1
-        entry1 = Entry(frame_main, width=35, borderwidth=1)
-        entry1.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
-        entry1.insert(0, "Enter Job Name")
-
-        create_button = Button(frame_main, text="Create Job", command= lambda: Controller.create_job(root), fg = "blue")
-        create_button.grid(row=0, column=4)
-
-        edit_button = Button(frame_main, text="Edit Jobs", command=lambda:Controller.edit_jobs(root))
-        edit_button.configure(fg="blue")
-        edit_button.grid(row=1, column=4)
-
-
-        executeTask = Label(frame_main, text="  Jobs to Execute", font='Helvetica 13 bold')
-        executeTask.grid(row=1, column=2, sticky = 'w')
-
-        frame_canvas = tk.Frame(frame_main)
-        frame_canvas.grid(row=2, column=2, pady=(0, 0), sticky = 'nw')
-        frame_canvas.grid_rowconfigure(0, weight=1)
-        frame_canvas.grid_columnconfigure(0, weight=1)
-        # Set grid_propagate to False to allow 5-by-5 buttons resizing later
-        # frame_canvas.grid_propagate(False)
-
-        # Add a canvas in that frame
-        canvas = tk.Canvas(frame_canvas) #, bg="yellow")
-        canvas.grid(row=0, column=0, sticky = 'news')
-
-        # Link a scrollbar to the canvas
-        vsb = tk.Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
-        vsb.grid(row=0, column=2, sticky='ns')
-        canvas.configure(yscrollcommand=vsb.set)
-
-        canvas.bind_all("<MouseWheel>", on_mousewheel)
-
-        frame_buttons = tk.Frame(canvas) #, bg="blue")
-        canvas.create_window((0, 0), window=frame_buttons)
-
         c.execute('SELECT name from sqlite_master where type= "table"')
         tables = c.fetchall()
-        b = 0
-        for table in tables:
-            for i in table:
-                a = str(i)
-                a = Button(frame_buttons, text=a, command=lambda i=i: Controller.run_task(i))
-                a.grid(row=b, column=0)
-                b = b + 1
 
-        frame_buttons.update_idletasks()
+        if len(tables) <= 9:
+            global entry1
+            entry1 = Entry(root, width=35, borderwidth=1)
+            entry1.grid(row=0, column=0, columnspan = 3, padx=10, pady=10)
+            entry1.insert(0, "Enter Job Name")
 
-        canvas.config(width = frame_buttons.winfo_width())
+            create_button = Button(root, text="Create Job", command=lambda: Controller.create_job(root),
+                                   fg="blue")
+            create_button.grid(row=0, column=4)
 
-        canvas.config(scrollregion=canvas.bbox("all"))
-        canvas.yview_moveto(0)
-        Label(root, text="", font='Helvetica 13 bold').grid(row=b+1, column=0)
+            edit_button = Button(root, text="Edit Jobs", command=lambda: Controller.edit_jobs(root))
+            edit_button.configure(fg="blue")
+            edit_button.grid(row=1, column=4)
+
+            executeTask = Label(root, text="  Jobs to Execute", font='Helvetica 13 bold')
+            executeTask.grid(row=1, column=1)
+
+            b = 2
+            for table in tables:
+                for i in table:
+                    a = str(i)
+                    a = Button(root, text=a, command=lambda i=i: Controller.run_task(i))
+                    a.grid(row=b, column=1)
+                    b = b + 1
+
+        else:
+
+
+            def on_mousewheel(event):
+                if op_sys == 'OS X':
+                    canvas.yview_scroll(-1 * (event.delta), "units")
+                elif op_sys == 'Windows':
+                    canvas.yview_scroll(-1 * (event.delta / 120), "units")
+                else:
+                    pass
+
+            root.grid_rowconfigure(0, weight=1)
+            root.columnconfigure(0, weight=1)
+
+            frame_main = tk.Frame(root)
+            frame_main.grid(sticky='news')
+
+
+
+            entry1 = Entry(frame_main, width=35, borderwidth=1)
+            entry1.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+            entry1.insert(0, "Enter Job Name")
+
+            create_button = Button(frame_main, text="Create Job", command= lambda: Controller.create_job(root), fg = "blue")
+            create_button.grid(row=0, column=4)
+
+            edit_button = Button(frame_main, text="Edit Jobs", command=lambda:Controller.edit_jobs(root))
+            edit_button.configure(fg="blue")
+            edit_button.grid(row=1, column=4)
+
+
+            executeTask = Label(frame_main, text="Jobs to Execute", font='Helvetica 13 bold')
+            executeTask.grid(row=1, column=2, sticky = 'nw')
+
+            frame_canvas = tk.Frame(frame_main)
+            frame_canvas.grid(row=2, column=2, pady=(0, 0), sticky = 'nw')
+            frame_canvas.grid_rowconfigure(0, weight=1)
+            frame_canvas.grid_columnconfigure(0, weight=1)
+            # Set grid_propagate to False to allow 5-by-5 buttons resizing later
+            # frame_canvas.grid_propagate(False)
+
+            # Add a canvas in that frame
+            canvas = tk.Canvas(frame_canvas) #, bg="yellow")
+            canvas.grid(row=0, column=0, sticky = 'news')
+
+            # Link a scrollbar to the canvas
+            vsb = tk.Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
+            vsb.grid(row=0, column=2, sticky='ns')
+            canvas.configure(yscrollcommand=vsb.set)
+
+            canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+            frame_buttons = tk.Frame(canvas) #, bg="blue")
+            canvas.create_window((0, 0), window=frame_buttons)
+
+            b = 0
+            for table in tables:
+                for i in table:
+                    a = str(i)
+                    a = Button(frame_buttons, text=a, command=lambda i=i: Controller.run_task(i))
+                    a.grid(row=b, column=0)
+                    b = b + 1
+
+            frame_buttons.update_idletasks()
+
+            canvas.config(width = frame_buttons.winfo_width())
+
+            canvas.config(scrollregion=canvas.bbox("all"))
+            canvas.yview_moveto(0)
+            Label(root, text="", font='Helvetica 13 bold').grid(row=b+1, column=0)
 
     def create_task_page(root2, num):
 
@@ -673,58 +761,72 @@ class Views():
 
     def create_edit_page(root3):
 
-        Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=0)
-
-        def on_mousewheel(event):
-            if op_sys == 'OS X':
-                canvas.yview_scroll(-1 * (event.delta), "units")
-            elif op_sys == 'Windows':
-                canvas.yview_scroll(-1 * (event.delta / 120), "units")
-            else:
-                pass
-
-        root3.grid_rowconfigure(0, weight=1)
-        root3.columnconfigure(0, weight=1)
-
-        frame_main = tk.Frame(root3)
-        frame_main.grid(sticky='news')
-
-        canvas = tk.Canvas(frame_main)
-        canvas.grid(row=0, column=0, sticky='news')
-
-        vsb = tk.Scrollbar(frame_main, orient="vertical", command=canvas.yview)
-        vsb.grid(row=0, column=2, sticky='ns')
-        canvas.configure(yscrollcommand=vsb.set)
-
-        frame_buttons = tk.Frame(canvas)
-        canvas.create_window((0, 0), window=frame_buttons)
-
-        canvas.bind_all("<MouseWheel>", on_mousewheel)
-
         c.execute('SELECT name from sqlite_master where type= "table"')
         tables = c.fetchall()
 
-        b = 1
-        for table in tables:
-            for i in table:
-                a = str(i)
-                a = Button(frame_buttons, text=a, command=lambda i=i: Controller.edit_task(i, root3))
-                a.grid(row=b, column=1)
-                Label(frame_buttons, text="        ").grid(row=b, column=0)
-                Label(frame_buttons, text="        ").grid(row=b, column=2)
-                b = b + 1
+        if len(tables) <= 8:
+            Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=1)
 
-        frame_buttons.update_idletasks()
+            b = 1
+            for table in tables:
+                for i in table:
+                    a = str(i)
+                    a = Button(root3, text=a, command=lambda i=i: Controller.edit_task(i, root3))
+                    a.grid(row=b, column=1)
+                    Label(root3, text="        ").grid(row=b, column=0)
+                    Label(root3, text="        ").grid(row=b, column=2)
+                    b = b + 1
 
-        canvas.config(width=frame_buttons.winfo_width())
+        else:
+            Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=0)
+            def on_mousewheel(event):
+                if op_sys == 'OS X':
+                    canvas.yview_scroll(-1 * (event.delta), "units")
+                elif op_sys == 'Windows':
+                    canvas.yview_scroll(-1 * (event.delta / 120), "units")
+                else:
+                    pass
 
-        canvas.config(scrollregion=canvas.bbox("all"))
-        canvas.yview_moveto(0)
+            root3.grid_rowconfigure(0, weight=1)
+            root3.columnconfigure(0, weight=1)
+
+            frame_main = tk.Frame(root3)
+            frame_main.grid(sticky='news')
+
+            canvas = tk.Canvas(frame_main)
+            canvas.grid(row=0, column=0, sticky='news')
+
+            vsb = tk.Scrollbar(frame_main, orient="vertical", command=canvas.yview)
+            vsb.grid(row=0, column=2, sticky='ns')
+            canvas.configure(yscrollcommand=vsb.set)
+
+            frame_buttons = tk.Frame(canvas)
+            canvas.create_window((0, 0), window=frame_buttons)
+
+            canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+            b = 1
+            for table in tables:
+                for i in table:
+                    a = str(i)
+                    a = Button(frame_buttons, text=a, command=lambda i=i: Controller.edit_task(i, root3))
+                    a.grid(row=b, column=1)
+                    Label(frame_buttons, text="        ").grid(row=b, column=0)
+                    Label(frame_buttons, text="        ").grid(row=b, column=2)
+                    b = b + 1
+
+            frame_buttons.update_idletasks()
+
+            canvas.config(width=frame_buttons.winfo_width())
+
+            canvas.config(scrollregion=canvas.bbox("all"))
+            canvas.yview_moveto(0)
 
 
 global page
 page = Tk()
 page.title("Job Manager")
+page.geometry('+%d+%d'%(100,100))
 
 
 Views.home_page(page)
