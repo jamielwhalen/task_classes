@@ -209,19 +209,16 @@ class Controller():
             warning = Tk()
             warning.withdraw()
 
-            list1 = []
-            for lnk in entry_list:
-                list1.append(lnk.get())
-            print(list1)
+            print(entry_dict)
 
-            e = len(list1)
-            t = len(options)
+            for entry in options.keys():
 
-            for idx in range(0, t):
-                a = idx+1
-                b=list1[idx]
-                d=options[idx+1]
+
+                a = entry
+                b = entry_dict[entry].get()
+                d = options[entry]
                 e = "Active"
+
                 if d == "File" or d =="Application":
                     if os.path.exists(b):
                         pass
@@ -233,14 +230,16 @@ class Controller():
                             pass
                         else:
                             return
+                if b != '':
 
-
-                add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a)+"','" + str(b)+"', '"+str(d) +"', '"+str(e)+"')")
-                c.execute(str(add1))
-                conn.commit()
+                    add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a) + "','" + str(b) + "', '" + str(
+                        d) + "', '" + str(e) + "')")
+                    c.execute(str(add1))
+                    conn.commit()
 
             options.clear()
             entry_list.clear()
+            entry_dict.clear()
 
             create_page.withdraw()
             new_page = Tk()
@@ -319,6 +318,7 @@ class Controller():
                         if os.path.exists(b):
                             pass
                         else:
+                            warning.bell()
                             if tkinter.messagebox.askokcancel("Error",
                                                               (
                                                                       b + " Is not an existing file path.  Click OK to proceed or Cancel to re-enter"),
@@ -326,10 +326,11 @@ class Controller():
                                 pass
                             else:
                                 return
+                    if b != '':
 
-                    add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a) + "','" + str(b) + "', '" + str(d) + "', '" + str(e) + "')")
-                    c.execute(str(add1))
-                    conn.commit()
+                        add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a) + "','" + str(b) + "', '" + str(d) + "', '" + str(e) + "')")
+                        c.execute(str(add1))
+                        conn.commit()
 
         string = ('SELECT * from ' + str(task) + ' ORDER BY 1')
 
@@ -523,6 +524,13 @@ class Controller():
         print(line)
         delete_dict[line] = var1.get()
 
+    def go_home(window):
+        window.withdraw()
+        home_page = Tk()
+        home_page.title("Job Manager")
+        home_page.geometry('+%d+%d' % (100, 100))
+        Views.home_page(home_page)
+
 
 
 
@@ -634,10 +642,14 @@ class Views():
 
     def create_task_page(root2, num):
 
+        home_button = Button(root2, text="Home", command=lambda: Controller.go_home(root2),
+                               fg="blue")
+        home_button.grid(row=0, column=0, padx=10, pady=10)
+
         link_name = ('link' + str(num))
 
-        Label(root2, text="Choose task type:", font='Helvetica 13 bold').grid(row=0, column=0)
-        Label(root2, text="Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=0,
+        Label(root2, text="Choose task type:", font='Helvetica 13 bold').grid(row=1, column=0)
+        Label(root2, text="Input a task URL or local file/application path", font='Helvetica 13 bold').grid(row=1,
                                                                                                             column=2)
 
         if num >= 1 and num < 5:
@@ -648,12 +660,13 @@ class Views():
 
                 popUpMenu = OptionMenu(root2, choice, *choices,
                                        command=lambda choice=choice, num=num: (Controller.get_selection(choice, num)))
-                popUpMenu.grid(row=num, column=0)
+                popUpMenu.grid(row=num+1, column=0)
 
                 link_name = Entry(root2, width=35, borderwidth=5)
-                link_name.grid(row=num, column=1, columnspan=3, padx=10, pady=10)
+                link_name.grid(row=num+1, column=1, columnspan=3, padx=10, pady=10)
 
                 entry_list.append(link_name)
+                entry_dict[num]=link_name
 
                 num = num + 1
 
@@ -671,40 +684,45 @@ class Views():
 
             popUpMenu = OptionMenu(root2, choice2, *choices,
                                    command=lambda choice2=choice2, num=num: (Controller.get_selection(choice2, num)))
-            popUpMenu.grid(row=num, column=0)
+            popUpMenu.grid(row=num+1, column=0)
 
             link_name = Entry(root2, width=35, borderwidth=5)
-            link_name.grid(row=num, column=1, columnspan=3, padx=10, pady=10)
+            link_name.grid(row=num+1, column=1, columnspan=3, padx=10, pady=10)
 
             entry_list.append(link_name)
+            entry_dict[num] = link_name
 
         button2 = Button(root2, text="Add Tasks to Job", command=lambda: Controller.create_task(root2), fg="blue")
-        button2.grid(row=num + 1, column=2)
+        button2.grid(row=num + 2, column=2)
 
         addTask = Button(root2, text="Add Task Line", command=lambda: Controller.add_task_line(root2, num), fg="blue")
-        addTask.grid(row=num + 1, column=0)
+        addTask.grid(row=num + 2, column=0)
 
 
     def edit_task_page(root4, task, num):
 
-        Label(root4, text="Edit Job Name", font='Helvetica 13 bold').grid(row=0, column=0)
+        home_button = Button(root4, text="Home", command=lambda: Controller.go_home(root4),
+                             fg="blue")
+        home_button.grid(row=0, column=0, padx=10, pady=10)
+
+        Label(root4, text="Edit Job Name", font='Helvetica 13 bold').grid(row=1, column=0)
 
         global entry2
         entry2 = Entry(root4, width=35, borderwidth=1)
-        entry2.grid(row=0, column=1, padx=10, pady=10)
+        entry2.grid(row=1, column=1, padx=10, pady=10)
         entry2.insert(0, task)
 
         delete_job = Button(root4, text="Delete Job", command=lambda: Controller.delete_job(task, root4), fg="blue")
-        delete_job.grid(row=0, column=2)
+        delete_job.grid(row=1, column=2)
 
         string = ('SELECT * from ' + str(task) + ' ORDER BY 1')
 
         c.execute(string)
         tasks = c.fetchall()
 
-        Label(root4, text="Task Type", font='Helvetica 13 bold').grid(row=1, column=0)
-        Label(root4, text="Task Link", font='Helvetica 13 bold').grid(row=1, column=1)
-        Label(root4, text="Delete Task", font='Helvetica 13 bold').grid(row=1, column=2)
+        Label(root4, text="Task Type", font='Helvetica 13 bold').grid(row=2, column=0)
+        Label(root4, text="Task Link", font='Helvetica 13 bold').grid(row=2, column=1)
+        Label(root4, text="Delete Task", font='Helvetica 13 bold').grid(row=2, column=2)
 
         if num <= len(tasks):
             for edit_task in tasks:
@@ -717,14 +735,14 @@ class Views():
                     choice.set(edit_task[2])
 
                     popUpMenu = OptionMenu(root4, choice, *choices, command=lambda choice=choice, num= num: (Controller.get_selection(choice, num)))
-                    popUpMenu.grid(row=num+1, column=0)
+                    popUpMenu.grid(row=num+2, column=0)
 
                     e = Entry(root4, width=35)
-                    e.grid(row=num+1, column = 1, padx=10, pady=10)
+                    e.grid(row=num+2, column = 1, padx=10, pady=10)
                     e.insert(0, edit_task[1])
 
                     var1 = IntVar(root4)
-                    Checkbutton(root4, text="", variable=var1, command = lambda var1 = var1, num=num:(Controller.delete_task(var1,num))).grid(row=num+1, column = 2)
+                    Checkbutton(root4, text="", variable=var1, command = lambda var1 = var1, num=num:(Controller.delete_task(var1,num))).grid(row=num+2, column = 2)
 
                     entry_dict[num] = e
 
@@ -734,37 +752,44 @@ class Views():
             addTask.destroy()
             global button2
             button2.destroy()
-            Label(root4, text="").grid(row=num+1, column=0)
+            Label(root4, text="").grid(row=num+2, column=0)
 
             choice = StringVar(root4)
             choices = ['Application', 'File', 'Website']
             choice.set('Choose Type')
             popUpMenu = OptionMenu(root4, choice, *choices, command=lambda choice=choice, num=num: (Controller.get_selection(choice, num)))
-            popUpMenu.grid(row=num+1, column=0)
+            popUpMenu.grid(row=num+2, column=0)
 
             e = Entry(root4, width=35)
-            e.grid(row=num+1, column=1, padx=10, pady=10)
+            e.grid(row=num+2, column=1, padx=10, pady=10)
 
             var1 = IntVar(root4)
-            Checkbutton(root4, text="", variable=var1, command=lambda var1=var1, num=num: (Controller.delete_task(var1,num))).grid(row=num + 1, column=2)
+            Checkbutton(root4, text="", variable=var1, command=lambda var1=var1, num=num: (Controller.delete_task(var1,num))).grid(row=num + 2, column=2)
 
             entry_dict[num] = e
 
         button2 = Button(root4, text="Update Job", command=lambda: Controller.update_task(task, root4), fg = "blue")
-        button2.grid(row=num + 2, column=2, sticky=E)
+        button2.grid(row=num + 3, column=2, sticky=E)
 
         addTask = Button(root4, text="Add Task Line", command=lambda: Controller.add_task_line2(root4,task, num), fg = "blue")
-        addTask.grid(row=num + 2, column=0)
+        addTask.grid(row=num + 3, column=0)
 
 
 
 
     def create_edit_page(root3):
 
+
+
         c.execute('SELECT name from sqlite_master where type= "table"')
         tables = c.fetchall()
 
         if len(tables) <= 8:
+
+            home_button = Button(root3, text="Home", command=lambda: Controller.go_home(root3),
+                                 fg="blue")
+            home_button.grid(row=0, column=0, padx=10, pady=10)
+
             Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=1)
 
             b = 1
@@ -778,7 +803,10 @@ class Views():
                     b = b + 1
 
         else:
-            Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=0)
+            home_button = Button(root3, text="Home", command=lambda: Controller.go_home(root3),
+                                 fg="blue")
+            home_button.grid(row=0, column=0, padx=10, pady=10)
+            Label(root3, text="Choose Job to Edit:", font='Helvetica 13 bold').grid(row=0, column=1)
             def on_mousewheel(event):
                 if op_sys == 'OS X':
                     canvas.yview_scroll(-1 * (event.delta), "units")
@@ -791,7 +819,7 @@ class Views():
             root3.columnconfigure(0, weight=1)
 
             frame_main = tk.Frame(root3)
-            frame_main.grid(sticky='news')
+            frame_main.grid(row = 1, column = 1, sticky='news')
 
             canvas = tk.Canvas(frame_main)
             canvas.grid(row=0, column=0, sticky='news')
