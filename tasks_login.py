@@ -21,11 +21,13 @@ if sys.platform in platforms:
 else:
     op_sys = "Not present"
 
+conn1 = sqlite3.connect('Users.db')
+c1 = conn1.cursor()
 
+ct_tbl = ('CREATE TABLE IF NOT EXISTS users (username Text, password Text)')
+ct_tbl = str(ct_tbl)
+c1.execute(ct_tbl)
 
-
-conn = sqlite3.connect('task.db')
-c = conn.cursor()
 
 
 entry_list = []
@@ -68,6 +70,97 @@ class Controller():
 
     def __init__(self):
         pass
+
+    def login(username, password, window):
+        warning = Tk()
+        warning.withdraw()
+
+        name = username.get()
+        pw = password.get()
+
+        error = 'Y'
+        c1.execute('SELECT * FROM users')
+        table = c1.fetchall()
+        for row in table:
+            if row[0] == name:
+                if row[1] == pw:
+                    error = 'N'
+
+        if error == 'Y':
+            warning.bell()
+            tkinter.messagebox.showerror("Error",
+                                         "Username or password do not match.")
+        else:
+            # conn1.close()
+            a = (name + '.db')
+            global conn
+            conn = sqlite3.connect(a)
+            global c
+            c = conn.cursor()
+
+            window.destroy()
+            page = Tk()
+            page.title("Job Manager")
+            page.geometry('+%d+%d' % (100, 100))
+
+            Views.home_page(page)
+
+    def verify_username(name, pwd, window):
+        warning = Tk()
+        warning.withdraw()
+
+        error = 'N'
+        c1.execute('SELECT * FROM users')
+        table = c1.fetchall()
+        for row in table:
+            print(row)
+            if row[0] != name:
+                pass
+            else:
+                error = 'Y'
+        if error == 'N':
+            add1 = ("INSERT INTO users VALUES('" + name + "','" + pwd + "')")
+            c1.execute(str(add1))
+            conn1.commit()
+
+            window.destroy()
+            page3 = Tk()
+            Views.login(page3)
+
+
+        else:
+            warning.bell()
+            tkinter.messagebox.showerror("Error",
+                                         "Username already exists.")
+
+            return
+
+    def create_user(username, password, verify, window):
+
+        warning = Tk()
+        warning.withdraw()
+
+        name = username.get()
+        pw = password.get()
+        pw2 = verify.get()
+
+        if pw == pw2:
+            print(username.get())
+            print(password.get())
+            print(verify.get())
+
+            Controller.verify_username(name, pw, window)
+
+        else:
+            warning.bell()
+            tkinter.messagebox.showerror("Error",
+                                         "Passwords do not match.")
+
+    def sign_up_page(window):
+        window.destroy()
+        page2 = Tk()
+        Views.sign_up(page2)
+
 
     def edit_jobs(root):
         root.withdraw()
@@ -211,6 +304,8 @@ class Controller():
 
             print(entry_dict)
 
+            list_char = []
+
             for entry in options.keys():
 
 
@@ -218,6 +313,22 @@ class Controller():
                 b = entry_dict[entry].get()
                 d = options[entry]
                 e = "Active"
+
+                if d == "Website":
+                    intro = ''
+                    for char in b:
+                        list_char.append(char)
+
+                    for i in range (8):
+                        letter = list_char[i]
+                        intro = (intro + letter)
+                        i = i+1
+                    print(intro)
+                    if intro =="https://":
+                        pass
+                    else:
+                        b = ("https://"+b)
+                list_char.clear()
 
                 if d == "File" or d =="Application":
                     if os.path.exists(b):
@@ -294,6 +405,8 @@ class Controller():
         warning = Tk()
         warning.withdraw()
 
+        list_char = []
+
         key_list = []
         for key in options.keys():
             key_list.append(key)
@@ -305,6 +418,8 @@ class Controller():
             c.execute(delete)
             conn.commit()
 
+
+
             for entry in entry_dict.keys():
                 if entry == number:
 
@@ -313,6 +428,25 @@ class Controller():
                     b = entry_dict[entry].get()
                     d = options[entry]
                     e = "Active"
+
+                    if d == "Website":
+                        intro = ''
+                        for char in b:
+                            list_char.append(char)
+
+                        for i in range(8):
+                            letter = list_char[i]
+                            intro = (intro + letter)
+                            i = i + 1
+                        print(intro)
+                        if intro == "https://":
+                            print("yes")
+                            list_char.clear()
+                        else:
+                            print("no")
+                            b = ("https://" + b)
+                            print(b)
+                            list_char.clear()
 
                     if d == "File" or d == "Application":
                         if os.path.exists(b):
@@ -360,6 +494,25 @@ class Controller():
                         b = entry_text_dict[key]
                         d = item2[2]
                         e = "Active"
+
+                        if d == "Website":
+                            intro = ''
+                            for char in b:
+                                list_char.append(char)
+
+                            for i in range(8):
+                                letter = list_char[i]
+                                intro = (intro + letter)
+                                i = i + 1
+                            print(intro)
+                            if intro == "https://":
+                                print("yes")
+                                list_char.clear()
+                            else:
+                                print("no")
+                                b = ("https://" + b)
+                                print(b)
+                                list_char.clear()
 
                         add1 = ("INSERT INTO " + str(y) + " VALUES('" + str(a) + "','" + str(b) + "', '" + str(d) + "', '" + str(e) + "')")
                         c.execute(str(add1))
@@ -531,6 +684,18 @@ class Controller():
         home_page.geometry('+%d+%d' % (100, 100))
         Views.home_page(home_page)
 
+    def logout(window):
+
+        # conn1 = sqlite3.connect('Users.db')
+        # c1 = conn1.cursor()
+        # conn.close()
+
+        window.destroy()
+        page = Tk()
+
+        Views.login(page)
+
+
 
 
 
@@ -538,8 +703,57 @@ class Controller():
 
 class Views():
 
+    def login(root5):
+
+        root5.title("Job Manager Log In")
+        root5.geometry('400x200+100+100')
+
+        Label(root5, text="Username").grid(row=0, column=0)
+
+        username = Entry(root5, width=30)
+        username.grid(row=0, column=1, columnspan = 2 ,padx=10, pady=10)
+
+        Label(root5, text="Password").grid(row=1, column=0)
+
+        password = Entry(root5, show = '*', width=30)
+        password.grid(row=1, column=1, columnspan = 2 ,padx=10, pady=10)
+
+        sign_up = Button(root5, text="Create User", command=lambda: Controller.sign_up_page(root5), fg="blue")
+        sign_up.grid(row=2, column=1, sticky=E)
+
+        log_in = Button(root5, text="Log In", command = lambda: Controller.login(username, password, root5), fg="blue")
+        log_in.grid(row=2, column=2, sticky=W)
+
+
+    def sign_up(root6):
+
+        root6.title("Job Manager Log In")
+        root6.geometry('450x200+100+100')
+
+        Label(root6, text="Username").grid(row=0, column=0)
+
+        username = Entry(root6, width=30)
+        username.grid(row=0, column=1, columnspan = 2 ,padx=10, pady=10)
+
+        Label(root6, text="Password").grid(row=1, column=0)
+
+        password = Entry(root6, show = '*', width=30)
+        password.grid(row=1, column=1, columnspan = 2 ,padx=10, pady=10)
+
+        Label(root6, text="Verify Password").grid(row=2, column=0)
+
+        verify = Entry(root6, show = '*', width=30)
+        verify.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
+
+        create_user = Button(root6, text="Create User", command = lambda: Controller.create_user(username, password, verify, root6), fg="blue")
+        create_user.grid(row=3, column=1, sticky=E)
+
 
     def home_page(root):
+
+        logout_button = Button(root, text="Log Out", command=lambda: Controller.logout(root))
+        logout_button.configure(fg="blue")
+        logout_button.grid(row=0, column=0)
 
         c.execute('SELECT name from sqlite_master where type= "table"')
         tables = c.fetchall()
@@ -547,26 +761,26 @@ class Views():
         if len(tables) <= 9:
             global entry1
             entry1 = Entry(root, width=35, borderwidth=1)
-            entry1.grid(row=0, column=0, columnspan = 3, padx=10, pady=10)
-            entry1.insert(0, "Enter Job Name")
+            entry1.grid(row=1, column=0, columnspan = 3, padx=10, pady=10)
+            entry1.insert(1, "Enter Job Name")
 
             create_button = Button(root, text="Create Job", command=lambda: Controller.create_job(root),
                                    fg="blue")
-            create_button.grid(row=0, column=4)
+            create_button.grid(row=1, column=4)
 
             edit_button = Button(root, text="Edit Jobs", command=lambda: Controller.edit_jobs(root))
             edit_button.configure(fg="blue")
-            edit_button.grid(row=1, column=4)
+            edit_button.grid(row=2, column=4)
 
             executeTask = Label(root, text="  Jobs to Execute", font='Helvetica 13 bold')
-            executeTask.grid(row=1, column=1)
+            executeTask.grid(row=2, column=1)
 
             b = 2
             for table in tables:
                 for i in table:
                     a = str(i)
                     a = Button(root, text=a, command=lambda i=i: Controller.run_task(i))
-                    a.grid(row=b, column=1)
+                    a.grid(row=b+2, column=1)
                     b = b + 1
 
         else:
@@ -580,8 +794,8 @@ class Views():
                 else:
                     pass
 
-            root.grid_rowconfigure(0, weight=1)
-            root.columnconfigure(0, weight=1)
+            root.grid_rowconfigure(1, weight=1)
+            root.columnconfigure(1, weight=1)
 
             frame_main = tk.Frame(root)
             frame_main.grid(sticky='news')
@@ -589,22 +803,22 @@ class Views():
 
 
             entry1 = Entry(frame_main, width=35, borderwidth=1)
-            entry1.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+            entry1.grid(row=1, column=0, columnspan=3, padx=10, pady=10)
             entry1.insert(0, "Enter Job Name")
 
             create_button = Button(frame_main, text="Create Job", command= lambda: Controller.create_job(root), fg = "blue")
-            create_button.grid(row=0, column=4)
+            create_button.grid(row=1, column=4)
 
             edit_button = Button(frame_main, text="Edit Jobs", command=lambda:Controller.edit_jobs(root))
             edit_button.configure(fg="blue")
-            edit_button.grid(row=1, column=4)
+            edit_button.grid(row=2, column=4)
 
 
             executeTask = Label(frame_main, text="Jobs to Execute", font='Helvetica 13 bold')
-            executeTask.grid(row=1, column=2, sticky = 'nw')
+            executeTask.grid(row=2, column=2, sticky = 'nw')
 
             frame_canvas = tk.Frame(frame_main)
-            frame_canvas.grid(row=2, column=2, pady=(0, 0), sticky = 'nw')
+            frame_canvas.grid(row=3, column=2, pady=(0, 0), sticky = 'nw')
             frame_canvas.grid_rowconfigure(0, weight=1)
             frame_canvas.grid_columnconfigure(0, weight=1)
             # Set grid_propagate to False to allow 5-by-5 buttons resizing later
@@ -612,11 +826,11 @@ class Views():
 
             # Add a canvas in that frame
             canvas = tk.Canvas(frame_canvas) #, bg="yellow")
-            canvas.grid(row=0, column=0, sticky = 'news')
+            canvas.grid(row=1, column=0, sticky = 'news')
 
             # Link a scrollbar to the canvas
             vsb = tk.Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
-            vsb.grid(row=0, column=2, sticky='ns')
+            vsb.grid(row=1, column=2, sticky='ns')
             canvas.configure(yscrollcommand=vsb.set)
 
             canvas.bind_all("<MouseWheel>", on_mousewheel)
@@ -629,7 +843,7 @@ class Views():
                 for i in table:
                     a = str(i)
                     a = Button(frame_buttons, text=a, command=lambda i=i: Controller.run_task(i))
-                    a.grid(row=b, column=0)
+                    a.grid(row=b+1, column=0)
                     b = b + 1
 
             frame_buttons.update_idletasks()
@@ -638,7 +852,7 @@ class Views():
 
             canvas.config(scrollregion=canvas.bbox("all"))
             canvas.yview_moveto(0)
-            Label(root, text="", font='Helvetica 13 bold').grid(row=b+1, column=0)
+            Label(root, text="", font='Helvetica 13 bold').grid(row=b+2, column=0)
 
     def create_task_page(root2, num):
 
@@ -851,13 +1065,10 @@ class Views():
             canvas.yview_moveto(0)
 
 
-global page
+
 page = Tk()
-page.title("Job Manager")
-page.geometry('+%d+%d'%(100,100))
+Views.login(page)
 
-
-Views.home_page(page)
 
 
 
